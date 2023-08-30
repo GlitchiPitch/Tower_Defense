@@ -4,6 +4,8 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local MobsManager = require(ServerScriptService.MobsManager)
 local PlayerManager = require(ServerScriptService.PlayerManager)
 
+local GameDescription = require(ServerScriptService.GameDescription)
+
 local Settings = require(ServerScriptService.Settings)
 
 local BindableEvents = ServerStorage.BindableEvents
@@ -49,6 +51,7 @@ function Tower:SpawnMobs()
 		for wave = 1, self.Game.WavesQuantity do
 			for i = 1, self.Game.MobsPerWaveQuantity do
                 if self.Game.Status then
+					self.Game.Signals.ToGame:Fire(GameDescription.GameEvents.SpawnMob)
                     local mob = MobsManager.new(self)
                     mob:Init()
                     wait(COOL_DOWN)

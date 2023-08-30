@@ -17,6 +17,11 @@ MainTable.PlayerMobs = {
     mob2 = {Name = 'PlayerMob2', Health = 5, Speed = 5, Id = 2},
 }
 
+MainTable.Mobs = { 
+    mob1 = {Name = 'Mob1', Health = 5, Speed = 5, Id = 1},
+    mob2 = {Name = 'Mob2', Health = 5, Speed = 5, Id = 2},
+}
+
 MainTable.GameEvents = {
     SpawnMob = 'SpawnMob'
 }

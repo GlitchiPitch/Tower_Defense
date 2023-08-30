@@ -8,17 +8,18 @@ local MainMobsManager = require(ServerScriptService.MainMobsManager)
 local BindableEvents = ServerStorage.BindableEvents
 local TowerDefenseTemplate = workspace.TowerDefenseTemplate
 
+local GameDescription = require(ServerScriptService.GameDescription)
 
 local mobsModules = ServerScriptService.MobsModules
 local playerMobsModules = ServerScriptService.PlayerMobsModules
 
-function CreateBindableEvents()
+function CreateBindableEvents(events)
 
-    local EVENTS = {'ToGame', 'ToTower', 'ToClient'}
+    -- local EVENTS = {'ToGame', 'ToTower', 'ToClient'}
 
     local eventsFolder = Instance.new('Folder')
-    eventsFolder.Parent = game:GetService('ReplicatedStorage')      --ServerStorage
-    eventsFolder.Name = 'BindableEvents'
+    -- eventsFolder.Parent = game:GetService('ReplicatedStorage')      --ServerStorage
+    -- eventsFolder.Name = nameFolder
 
     local function setupEvent(name)
         local event = Instance.new('BindableEvent')
@@ -26,7 +27,7 @@ function CreateBindableEvents()
         event.Name = name
     end
 
-    for _, eventName in pairs(EVENTS) do
+    for _, eventName in pairs(events) do
         setupEvent(eventName)
     end
 
@@ -43,12 +44,14 @@ function Game.new(player)
     self.Status = true
     self.Player = player
 
-    self.Events = CreateBindableEvents()
-    self.Mobs = MainMobsManager.MobsManager(self, mobsModules)
-    self.PlayerMobs = MainMobsManager.MobsManager(self, playerMobsModules)
+    self.Signals = CreateBindableEvents(GameDescription.Signals)
+    self.GameEvents = CreateBindableEvents(GameDescription.GameEvents)
+
+    self.Mobs = MainMobsManager.MobsManager(self, GameDescription.Mobs)
+    self.PlayerMobs = MainMobsManager.MobsManager(self, GameDescription.PlayerMobs)
     
     
-    self.TowerDefense = TowerManager.new(self, TowerDefenseTemplate)
+    self.Tower = TowerManager.new(self, TowerDefenseTemplate)
     self.WavesQuantity = 10
     self.MobsPerWaveQuantity = 10
 
@@ -56,7 +59,7 @@ function Game.new(player)
 end
 
 function Game:WaitGameOver()
-   self.Events.ToGame.Event:Connect(function(action)
+   self.Signals.ToGame.Event:Connect(function(action)
         if action == 'GameOver' then
             self.Status = false
         elseif action == 'Win' then
@@ -66,16 +69,28 @@ function Game:WaitGameOver()
    end)
 end
 
+function Game:SubscribeEvents()
+    for _, event in pairs(self.Signals) do
+        
+    end
+
+    for _, event in pairs(self.GameEvents) do
+        
+    end
+
+end
+
 function Game:StartGame()
-    self.TowerDefense:Init()
+    self.Tower:Init()
+    self.Mobs:Init()
+    self.PlayerMobs:Init()
 end
 
 function Game:Init()
     
-    self.Mobs:Init()
-    self.PlayerMobs:Init()
-
     self:StartGame()
+    
+
 
     self:WaitGameOver()
 end
