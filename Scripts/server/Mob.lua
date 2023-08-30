@@ -8,15 +8,22 @@ local Mob = {}
 
 Mob.__index = Mob
 
-function Mob.new(towerDefense)
+function Mob.new(game_, properties, model, side, cframe)
     local self = setmetatable({}, Mob)
-    self.Tower = towerDefense
-    
-    self.Parent = towerDefense.ExistMobs
-    self.MobList = self.Tower.Mobs
+    -- self.Tower = towerDefense
+    self.Game = game_
+    self.Parent = side -- towerDefense.ExistMobs or workspace.PalyerMobs
 
-    self.health = 10
-    self.speed = 5
+    self.Model = model
+
+    self.SpawnCFrame = cframe
+
+    for key, value in pairs(properties) do
+        self[key] = value
+    end
+
+    -- self.health = 10
+    -- self.speed = 5
     
     return self
 end
@@ -27,36 +34,46 @@ function Mob:CheckDead()
     end
 end
 
-function Mob:Create()
-    return self.MobList[math.random(#self.MobList)]:Clone()
+function Mob:Setup(humanoid)
+    for i, o in pairs(self) do
+        local currentProperty = humanoid:FindFirstChild(i)
+        if currentProperty then 
+            currentProperty = o 
+        else
+            humanoid:SetAttribute(i, o)
+        end
+    end
+
+    
 end
 
 function Mob:Spawn()
-    self.Humanoid = self.Mob:FindFirstChild('Humanoid')
-    self.Mob.Parent = self.Parent
-    self.Mob:FindFirstChild('HumanoidRootPart').CFrame = self.Tower.spawnPoint -- part    
+    self.Humanoid = self.Model:FindFirstChild('Humanoid')
+    self.HumanoidRootPart = self.Model:FindFirstChild('HumanoidRootPart')
+    
+    self.Model.Parent = self.Parent
+    self.HumanoidRootPart.CFrame = self.SpawnCFrame -- part    
 end
 
 function Mob:Init()
 
-    self.Mob = self:Create()    
+    self:Spawn()
+    self:CheckDead()
 
     self.Waypoints = self.Tower.Waypoints
     
-    self:Spawn()
-    self:CheckDead()
     self:Move()
 end
 
-function Mob:Move()
+function Mob:Move(waypoints)
 
-    for _, waypoint in pairs(self.Waypoints:GetChildren()) do
+    for _, waypoint in pairs(waypoints:GetChildren()) do
         self.Humanoid:MoveTo(waypoint.Position)
         self.Humanoid.MoveToFinished:Wait()
     end
 
     -- finished event
-    self.Tower.Events.ToTower:Fire('MobIsFinished')
+    self.Game.Signals.ToTower:Fire('MobIsFinished')
     self:Destroy()
 end
 

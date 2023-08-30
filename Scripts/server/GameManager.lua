@@ -7,7 +7,7 @@ local MainMobsManager = require(ServerScriptService.MainMobsManager)
 
 local BindableEvents = ServerStorage.BindableEvents
 local TowerDefenseTemplate = workspace.TowerDefenseTemplate
-local MobsModels = workspace.MobsModels
+
 
 local mobsModules = ServerScriptService.MobsModules
 local playerMobsModules = ServerScriptService.PlayerMobsModules
