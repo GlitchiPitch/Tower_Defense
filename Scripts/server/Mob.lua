@@ -1,5 +1,6 @@
 local ServerStorage = game:GetService('ServerStorage')
 local ServerScriptService = game:GetService('ServerScriptService')
+local PathfindingService = game:GetService('PathfindingService')
 local Settings = require(ServerScriptService.Settings)
 
 local BindableEvents = ServerStorage.BindableEvents
@@ -8,12 +9,12 @@ local Mob = {}
 
 Mob.__index = Mob
 
-function Mob.new(game_, properties, model, side, cframe)
+function Mob.new(game_, type_, properties, model, side, cframe)
     local self = setmetatable({}, Mob)
     -- self.Tower = towerDefense
     self.Game = game_
-    self.Parent = side -- towerDefense.ExistMobs or workspace.PalyerMobs
-
+    self.Parent = side -- towerDefense.ExistMobs or towerDefence.PalyerMobs
+    self.Type = type_
     self.Model = model
 
     self.SpawnCFrame = cframe
@@ -34,17 +35,25 @@ function Mob:CheckDead()
     end
 end
 
-function Mob:Setup(humanoid)
+function Mob:Setup()
     for i, o in pairs(self) do
-        local currentProperty = humanoid:FindFirstChild(i)
+        local currentProperty = self.Humanoid:FindFirstChild(i)
         if currentProperty then 
             currentProperty = o 
         else
-            humanoid:SetAttribute(i, o)
+            self.Humanoid:SetAttribute(i, o)
         end
     end
 
     
+end
+
+function Mob:Action()
+    if self.Type == 'Mob' then
+        self:Move()
+    elseif self.Type == 'PlayerMob' then
+        self:FindTarget()
+    end
 end
 
 function Mob:Spawn()
@@ -58,16 +67,25 @@ end
 function Mob:Init()
 
     self:Spawn()
+    self:Setup()
     self:CheckDead()
 
-    self.Waypoints = self.Tower.Waypoints
+    self:Action()
+
+    self.Waypoints = self.Parent:FindFirstChild('Waypoints')
     
     self:Move()
 end
 
-function Mob:Move(waypoints)
+function Mob:GetPath()
+    local path = PathfindingService:CreatePath()
+    path:ComputeAsync(self.HumanoidRootPart.Position, self.Parent.Parent:FindFirstChild('startPoint').Position)
+    return path:GetWaypoints()
+end
 
-    for _, waypoint in pairs(waypoints:GetChildren()) do
+function Mob:Move()
+
+    for _, waypoint in pairs(self:GetPath():GetChildren()) do
         self.Humanoid:MoveTo(waypoint.Position)
         self.Humanoid.MoveToFinished:Wait()
     end
@@ -75,6 +93,16 @@ function Mob:Move(waypoints)
     -- finished event
     self.Game.Signals.ToTower:Fire('MobIsFinished')
     self:Destroy()
+end
+
+function Mob:FindTarget()
+    
+
+    self:Shoot()
+end
+
+function Mob:Shoot()
+    
 end
 
 return Mob

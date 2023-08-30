@@ -70,8 +70,8 @@ end
 
 function MainMobsManager:SpawnMob(mobId, parent, cframe)
     local mob
-    for _, mobClass in pairs(self.MobClasses) do
-        if mobClass.id == mobId then mob = Mob.new(mobClass, self.MobsModelList[mobId]:Clone(), parent, cframe) break end
+    for nameMob, mobClass in pairs(self.MobClasses) do
+        if mobClass.id == mobId then mob = Mob.new(self.Game, nameMob, mobClass, self.MobsModelList[mobId]:Clone(), parent, cframe) break end
     end
     if mob then mob:Init() end
 end
